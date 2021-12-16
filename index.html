@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <title>Wesh</title>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+  <link rel="icon" href="./assets/img/vueLogo.png" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" />
+  <link href="./assets/style/style.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app">
+    <nav>
+      <div class="nav-container">
+        <div id="logo">
+          <router-link to="/">
+            <img src="./assets/img/wish-logo-800.png" alt="logo" />
+          </router-link>
+        </div>
+
+        <ul id="icons">
+          <li>
+            <router-link to="/wishlist">
+              <i class="fas fa-heart"></i>
+              <span id="nav-not"></span>
+            </router-link>
+          </li>
+          <li>
+            <router-link to="/shoppingcart">
+              <i class="fas fa-shopping-cart"></i>
+            </router-link>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <router-view></router-view>
+  </div>
+
+  <script type="text/x-template" id="home">
+      <div class="home-container">
+        <h1>Articles </h1>
+        <input type="search" v-model="searchKey" id="search" placeholder="Rechercher..." autocomplete="off">
+        <span v-if="searchKey && filterList.length >=1">
+          {{filterList.length}} Résultat<span v-if="filterList.length >=2">s</span>
+        </span>
+
+        <div class="card-cart-container">
+          <div class="card-container">
+            <div v-for="product in filterList" class="card">
+              <div class="img-container">
+                <img v-bind:src="product.img" alt="">
+              </div>
+              <div class="card-text">
+                <h3>{{product.description}}</h3>
+                <span>{{product.price}}</span>
+              </div>
+              <div class="card-icons">
+                <div class="like-container">
+                  <input
+                    type="checkbox"
+                    name="checkbox"
+                    v-bind:id="product.id"
+                    :value=product.id
+                    v-model="liked"
+                    @click="setLikeCookie()"
+                    />
+                  <label v-bind:for="product.id">
+                    <i class="fas fa-heart"></i>
+                  </label>
+                </div>
+                <div class="add-to-cart">
+                  <button v-on:click="addToCart(product)">
+                    <i class="fas fa-shopping-cart"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+            <div v-if="filterList.length==0" class="no-result">
+              <h3>Désolé</h3>
+              <p>Aucun résultat n'a été trouvé</p>
+            </div>
+
+            <div name="cart-anim">
+              <div v-if="cart.length >0" class="shopping-cart" id=shopping-cart>
+                <h2>Panier</h2>
+                <div tag="div" name="item-anim"  class="item-group">
+                  <div v-for="product,id in cart" class="item">
+                    <div class="img-container">
+                        <img v-bind:src="product.img" alt="">
+                    </div>
+                    <div class="item-description">
+                      <h4>{{product.description}}</h4>
+                      <p>{{product.price}} €</p>
+                    </div>
+                    <div class="item-quantity">
+                      <h6>quantité : {{product.quantite}}</h6>
+                      <div class="cart-icons">
+                        <button @click="cartPlusOne(product)">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                        <button @click="cartMinusOne(product,id)">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <button @click="cartRemoveItem(id)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="grand-total">
+                  <div class="total">
+                    <h2>Total</h2>
+                    <h2>{{cartTotalAmount}} €</h2>
+                  </div>
+                  <h6>Total articles: {{cartTotalQuantity}}</h6>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </script>
+
+  <script type="text/x-template" id="WishList">
+      <div class="home-container">
+        <h1><span v-if="like.length==1">Votre article favori</span>
+            <span v-if="like.length!=1">Vos articles favoris</span>
+        </h1>
+        <span v-if="like.length==0">Vous n'avez pas d'articles en favori</span>
+        <div class="card-cart-container">
+          <div class="card-container">
+            <div v-for="index in like" class="card">
+              <div class="img-container">
+                <img v-bind:src="products[index].img" alt="">
+              </div>
+              <div class="card-text">
+                <h3>{{products[index].description}}</h3>
+                <span>{{products[index].price}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+  <script type="text/x-template" id="ShoppingCart">
+      <div class="home-container">
+        <h1>Panier</h1>
+        <div class="container">
+          <div class="row">
+            <div class="col"><h2>Images</h2></div>
+            <div class="col"><h2>Nom du produit</h2></div>
+            <div class="col"><h3>{{product.price}}</h3></div>
+            <div class="col"><h3>{{product.quantite}}</h3></div>
+            <div class="col">{{product.price*product.quantite}} €</div>
+            <hr>
+          </div>      
+          <div v-for="product,id in panier" class="row">
+            <div class="col"> <img v-bind:src="product.img" alt="imgObjet"></div>
+            <div class="col"><h3>{{product.description}}</h3></div>
+            <div class="col"><h3>{{product.price}}</h3></div>
+            <div class="col"><h3>{{product.quantite}}</h3></div>
+            <div class="col">{{product.price*product.quantite}} €</div>
+            <hr>
+          </div>      
+        
+        </div>
+        <div class="card-cart-container">
+          <div name="cart-anim">
+              <span v-if="panier.length ==0"> Votre panier est vide !!!</span>
+              <div v-if="panier.length >0" class="shopping-cart" id=shopping-cart>
+                <div tag="div" name="item-anim"  class="item-group">
+                  <div v-for="product,id in panier" class="item">
+                    <div class="img-container">
+                        <img v-bind:src="product.img" alt="">
+                    </div>
+                    <div class="item-description">
+                      <h4>{{product.description}}</h4>
+                      <p>{{product.price}} €</p>
+                    </div>
+                    <div class="item-quantity">
+                      <h6>quantité : {{product.quantite}}</h6>
+                      <div class="cart-icons">
+                        <button @click="cartPlusOne(product)">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                        <button @click="cartMinusOne(product,id)">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <button @click="cartRemoveItem(id)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="grand-total">
+                  <div class="total">
+                    <h2>Total</h2>
+                    <h2>{{cartTotalAmount}} €</h2>
+                  </div>
+                  <h6>Total articles: {{cartTotalQuantity}}</h6>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+    </script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+  <script src="https://unpkg.com/vue-cookies@1.7.4/vue-cookies.js"></script>
+  <script src="./assets/js/vue.js"></script>
+  <script src="./assets/js/script.js"></script>
+</body>
+
+</html>
